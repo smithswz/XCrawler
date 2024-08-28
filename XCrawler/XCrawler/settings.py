@@ -1,3 +1,5 @@
+from XCrawler import get_config
+
 # Scrapy settings for XCrawler project
 #
 # For simplicity, this file contains only settings considered important or
@@ -17,7 +19,7 @@ NEWSPIDER_MODULE = "XCrawler.spiders"
 #USER_AGENT = "XCrawler (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
@@ -50,9 +52,9 @@ ROBOTSTXT_OBEY = True
 
 # Enable or disable downloader middlewares
 # See https://docs.scrapy.org/en/latest/topics/downloader-middleware.html
-#DOWNLOADER_MIDDLEWARES = {
-#    "XCrawler.middlewares.XcrawlerDownloaderMiddleware": 543,
-#}
+DOWNLOADER_MIDDLEWARES = {
+   "TwitterCrawler.request_async.CurlCffiDownloaderMiddleware": 543,
+}
 
 # Enable or disable extensions
 # See https://docs.scrapy.org/en/latest/topics/extensions.html
@@ -62,9 +64,9 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    "XCrawler.pipelines.XcrawlerPipeline": 300,
-#}
+ITEM_PIPELINES = {
+   "XCrawler.pipelines.XcrawlerPipeline": 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html
@@ -91,3 +93,15 @@ ROBOTSTXT_OBEY = True
 REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
+
+SCHEDULER = "scrapy_redis.scheduler.Scheduler"
+DUPEFILTER_CLASS = "scrapy_redis.dupefilter.RFPDupeFilter"
+
+config_redis = get_config.redisconfig()
+REDIS_HOST = config_redis['link']
+REDIS_PORT = config_redis['port']
+REDIS_PARAMS = {
+    'db': config_redis['dbname'],
+    # 如果有密码，可以添加
+   #  'password': 'zraq@2020'
+}
