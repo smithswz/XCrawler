@@ -68,5 +68,3 @@ class CurlCffiDownloaderMiddleware:
             db_data.commit()
         except Exception as e:
             self.logger.error(f"更新数据库错误：{e}")
-
-

@@ -12,6 +12,7 @@ mogodbconfig:
   port: 27017
   passwd: ""
 
+
 redisconfig:
   dbname: 0
   link: "192.168.1.5"
