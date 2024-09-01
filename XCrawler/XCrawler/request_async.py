@@ -8,7 +8,7 @@ import psycopg2
 from XCrawler import get_config
 
 proxies = [
-    {"https":"127.0.0.1:10809"}
+    {"https":"192.168.1.254:10811"}
 ]
 
 class CurlCffiDownloaderMiddleware:

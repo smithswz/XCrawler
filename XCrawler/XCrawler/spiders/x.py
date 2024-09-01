@@ -29,15 +29,17 @@ class XSpider(RedisSpider):
         # 是否为第一次请求
         is_first = response.meta['is_first']
         # 解析爬取的数据
-        all_data = get_article(api_data,stop_time,stop_count,is_first)
+        all_data = get_article(api_data,stop_time,is_first)
+        response.meta['count_num'] += len(all_data['data'])
         for i in all_data['data']:
             self.post_item(i)
-        if all_data['next_status']:
-            response.meta
-            api_url = self.format_nexturl(api_data,user_id)
-            yield Request(api_url,callback=self.parse,meta=response.meta)
         if is_first:
             self.update_stop_time(all_data['stop_time'],_id)
+            response.meta['is_first'] = False
+        if all_data['next_status'] and response.meta['count_num'] >= stop_count:
+            api_url = self.format_nexturl(api_data,user_id)
+            yield Request(api_url,callback=self.parse,meta=response.meta)
+        
 
     def post_item(self,data):
         '''

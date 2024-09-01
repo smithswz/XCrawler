@@ -1,19 +1,15 @@
-import json
 import time
 
-def get_article(api_data,stop_time,stop_count,is_first) -> dict:
+def get_article(api_data,stop_time,is_first) -> dict:
     '''
     获取置顶帖和正常发帖的信息
     '''
     return_data = {
         'data':[],
         'stop_time':stop_time,
-        'stop_count': stop_count,
         'next_status':True
     }
     all_data = list()
-    if stop_time != None:
-        stop_count = None
     if stop_time == None:
         stop_time == '2000-01-01 00:00:00'
     # 获取数据中存放帖子的列表
