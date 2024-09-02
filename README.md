@@ -3,7 +3,7 @@
 
 # 数据库
 需要redis,postgre和mongodb
-
+```
 ├── main_base.py              // 启动scrapy爬虫
 ├── scrapy.cfg
 ├── XCrawler
@@ -21,3 +21,4 @@
 │       ├── __init__.py
 │       └── x.py
 └── XCrawler.sql              // postgre数据库结构文件
+```
