@@ -38,16 +38,17 @@ def get_article(api_data,stop_time,is_first) -> dict:
         except Exception as e:
             print(f"解析帖子错误{e}")
     if is_first:
-        return_data['stop_time'] = get_stop_time(all_data)
+        return_data['stop_time'] = get_stop_time(all_data,stop_time)
+    return_data['data'] = all_data
     return return_data
 
 
 
-def get_stop_time(datas):
+def get_stop_time(datas,stop_time):
     '''
     获取最新帖子的时间
     '''
-    create_time = ''
+    create_time = stop_time
     for data in datas:
         if data['create_time'] > create_time:
             create_time = data['create_time']
@@ -77,7 +78,7 @@ def get_parse(data,stop_time):
                     X_info_inner = get_data(result_inner)
                     X_info['x_info_inner'] = X_info_inner
     # 记录时间大于采集到的时间则停止采集
-    if X_info['create_time'] < stop_time:
+    if X_info['create_time'] <= stop_time:
         X_info = None
     return X_info
 

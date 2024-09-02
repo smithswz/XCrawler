@@ -28,38 +28,49 @@ class XSpider(RedisSpider):
         stop_count = response.meta['stop_count']
         # 是否为第一次请求
         is_first = response.meta['is_first']
-        # 解析爬取的数据
-        all_data = get_article(api_data,stop_time,is_first)
-        response.meta['count_num'] += len(all_data['data'])
-        for i in all_data['data']:
-            self.post_item(i)
-        if is_first:
-            self.update_stop_time(all_data['stop_time'],_id)
-            response.meta['is_first'] = False
-        if all_data['next_status'] and response.meta['count_num'] >= stop_count:
-            api_url = self.format_nexturl(api_data,user_id)
-            yield Request(api_url,callback=self.parse,meta=response.meta)
-        
+        if self.content(api_data,_id):
+            # 解析爬取的数据
+            all_data = get_article(api_data,stop_time,is_first)
+            response.meta['count_num'] += len(all_data['data'])
+            for data in all_data['data']:
+                item = XcrawlerItem()
+                item['user_id_str'] = data['user_id_str']
+                item['name'] = data['name']
+                item['user_name'] = data['user_name']
+                item['header_link'] = data['header_link']
+                item['create_time'] = data['create_time']
+                item['X_full_text'] = data['X_full_text']
+                item['X_link'] = data['X_link']
+                item['photo_list'] = data['photo_list']
+                item['video_list'] = data['video_list']
+                item['quote_result'] = data['quote_result']
+                item['x_info_inner'] = data['x_info_inner']
+                item['is_download'] = 0
+                yield item
+            if is_first:
+                self.update_stop_time(all_data['stop_time'],_id)
+                response.meta['is_first'] = False
+            if all_data['next_status'] or response.meta['count_num'] >= stop_count:
+                api_url = self.format_nexturl(api_data,user_id)
+                yield Request(api_url,callback=self.parse,meta=response.meta)
 
-    def post_item(self,data):
-        '''
-        数据推送到管道
-        '''
-        item = XcrawlerItem()
-        item['user_id_str'] = data['user_id_str']
-        item['name'] = data['name']
-        item['user_name'] = data['user_name']
-        item['user_avatar'] = data['user_avatar']
-        item['create_time'] = data['create_time']
-        item['tweet_full_text'] = data['tweet_full_text']
-        item['tweet_link'] = data['tweet_link']
-        item['photo_list'] = data['photo_list']
-        item['video_list'] = data['video_list']
-        item['quote_result'] = data['quote_result']
-        item['x_info_inner'] = data['x_info_inner']
-        item['file_name'] = int(time.time()*1000)
-        item['is_download'] = 0
-        yield item
+    def content(self,data,_id):
+        if data['data']['user'] == {}:
+            logger.error(f"user_id失效")
+            sql = f' update "X_Information" set status = 2 where id = {_id}'
+            sql_account = get_config.postgreconfig()
+            db_data = psycopg2.connect(host=sql_account['link'],user=sql_account['user'],password = sql_account['passwd'],database = sql_account['dbname'],port=sql_account['port'])
+            cursor = db_data.cursor()
+            try:
+                cursor.execute(sql)
+                db_data.commit()
+            except Exception as e:
+                logger.error(f"更新数据库错误：{e}")
+                db_data.rollback()
+            cursor.close()
+            db_data.close()
+            return False
+        return True
 
     def format_nexturl(self,data,_id):
         '''
