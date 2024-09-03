@@ -1,4 +1,4 @@
-from curl_cffi.requests import AsyncSession
+import aiohttp
 from scrapy import signals
 from scrapy.http import HtmlResponse
 from scrapy.exceptions import IgnoreRequest
@@ -8,7 +8,7 @@ import psycopg2
 from XCrawler import get_config
 
 proxies = [
-    {"https":"192.168.1.254:10811"}
+    "http://192.168.1.254:10811"
 ]
 
 class CurlCffiDownloaderMiddleware:
@@ -30,16 +30,17 @@ class CurlCffiDownloaderMiddleware:
             proxy = random.choice(proxies)
             header = request.meta['headers']
             cookie = request.meta['cookies']
-            async with AsyncSession() as s:
-                response = await s.get(request.url,impersonate="edge101",headers=header,proxies=proxy,cookies=cookie)
-            if response.status_code == 429:
+            async with aiohttp.ClientSession() as s:
+                response = await s.get(request.url,headers=header,proxy=proxy,cookies=cookie)
+            if response.status == 429:
                 self.update_account_status(request.meta['cookie_id'])
                 self.logger.warning(f"返回429错误码，在数据库中进行标记")
                 return
+            content = await response.read()
             return HtmlResponse(
                 url=request.url,
-                status=response.status_code,
-                body=response.content,
+                status=response.status,
+                body=content,
                 request=request,
             )
         except Exception as e:
